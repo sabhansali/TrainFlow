@@ -1,19 +1,35 @@
 
 {
   "rule_version": "1.0",
-  "criteria": {
-    "role_relevance_score": 40,
-    "skill_gap_alignment_score": 35,
-    "prerequisite_completion_score": 25
-  },
-  "thresholds": {
-    "manager_approval_review": 75,
-    "lnd_review": 50
-  },
+  "description": "Baseline L&D training-suitability rules for demonstration.",
   "allowed_roles": [
     "Software Engineer",
     "Data Analyst"
   ],
+  "role_rules": {
+    "Software Engineer": {
+      "criteria": {
+        "role_relevance_score": 40,
+        "skill_gap_alignment_score": 35,
+        "prerequisite_completion_score": 25
+      },
+      "thresholds": {
+        "manager_approval_review": 75,
+        "lnd_review": 50
+      }
+    },
+    "Data Analyst": {
+      "criteria": {
+        "role_relevance_score": 35,
+        "skill_gap_alignment_score": 40,
+        "prerequisite_completion_score": 25
+      },
+      "thresholds": {
+        "manager_approval_review": 75,
+        "lnd_review": 50
+      }
+    }
+  },
   "review_actions": [
     "APPROVE",
     "EDIT",

@@ -1,0 +1,41 @@
+
+{
+  "rule_version": "2.0",
+  "description": "Alternative L&D scoring rules for comparison and evaluation.",
+  "allowed_roles": [
+    "Software Engineer",
+    "Data Analyst"
+  ],
+  "role_rules": {
+    "Software Engineer": {
+      "criteria": {
+        "role_relevance_score": 45,
+        "skill_gap_alignment_score": 35,
+        "prerequisite_completion_score": 20
+      },
+      "thresholds": {
+        "manager_approval_review": 78,
+        "lnd_review": 52
+      }
+    },
+    "Data Analyst": {
+      "criteria": {
+        "role_relevance_score": 30,
+        "skill_gap_alignment_score": 45,
+        "prerequisite_completion_score": 25
+      },
+      "thresholds": {
+        "manager_approval_review": 76,
+        "lnd_review": 52
+      }
+    }
+  },
+  "review_actions": [
+    "APPROVE",
+    "EDIT",
+    "HOLD",
+    "REQUEST_INFO"
+  ],
+  "sla_hours": 48,
+  "notification_max_retries": 2
+}

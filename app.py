@@ -36,7 +36,7 @@ from src.workflow import (
     process_import_file,
     reopen_request,
 )
-
+from src.rule_comparison_view import render_rule_comparison_tab
 
 # ---------------------------------------------------------------------
 # Configuration and initialization
@@ -51,7 +51,10 @@ st.set_page_config(
 
 APP_ROOT = Path(__file__).resolve().parent
 DB_PATH = Path(DEFAULT_DB_PATH)
-RULES_PATH = APP_ROOT / "rules.json"
+RULE_FILES = {
+    "1.0": APP_ROOT / "rules.json",
+    "2.0": APP_ROOT / "rules_v2.json",
+}
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 initialize_database(DB_PATH)
@@ -333,6 +336,7 @@ tab_names = [
 
 if role == "ADMIN":
     tab_names.append("User Management")
+    tab_names.append("Rule Comparison")
 
 tabs = st.tabs(tab_names)
 tab_lookup = dict(zip(tab_names, tabs))
@@ -433,7 +437,48 @@ with tab_lookup["Import Requests"]:
             if len(uploaded_bytes) > MAX_UPLOAD_BYTES:
                 st.error("The uploaded file exceeds the 10 MB size limit.")
             else:
-                if st.button("Validate and process import", type="primary"):
+                selected_rule_version = st.selectbox(
+                "Scoring rule version",
+                options=["1.0", "2.0"],
+                format_func=lambda version: (
+                    f"Version {version} — "
+                    + ("Baseline" if version == "1.0" else "Alternative")
+                ),
+                key="import_rule_version",
+            )
+
+            selected_rules_path = RULE_FILES[selected_rule_version]
+
+            try:
+                selected_rules = load_rules(selected_rules_path)
+                rules_valid = True
+                st.caption(
+                    f"Validated scoring configuration: version "
+                    f"{selected_rule_version}"
+                )
+
+                with st.expander("Preview selected scoring configuration"):
+                    st.json({
+                        "rule_version": selected_rules["rule_version"],
+                        "role_rules": selected_rules.get(
+                            "role_rules",
+                            {
+                                "Default": {
+                                    "criteria": selected_rules.get("criteria"),
+                                    "thresholds": selected_rules.get("thresholds"),
+                                }
+                            },
+                        ),
+                    })
+
+            except (ValueError, FileNotFoundError) as exc:
+                rules_valid = False
+                st.error(f"Cannot use the selected scoring rules: {exc}")
+                if st.button(
+                "Validate and process import",
+                type="primary",
+                disabled=not rules_valid,
+            ):
                     original_name = Path(uploaded.name).name
 
                     try:
@@ -450,11 +495,14 @@ with tab_lookup["Import Requests"]:
                                 file_path=temporary_path,
                                 db_path=DB_PATH,
                                 actor_user_id=identity["user_id"],
-                                rules_path=RULES_PATH,
+                                rules_path=selected_rules_path,
                             )
 
                         summary = result["summary"]
-                        st.success("Import processing completed.")
+                        st.success(
+                            f"Import processing completed using rule version "
+                            f"{selected_rule_version}."
+                        )
                         st.json(summary)
 
                         if result["persistence"]["duplicate_import"]:
@@ -984,3 +1032,8 @@ if role == "ADMIN":
                         show_error("Account status update", exc)
         else:
             st.info("No user accounts exist.")
+            
+        with tab_lookup["Rule Comparison"]:
+            all_requests = list_requests(DB_PATH, limit=10000)
+
+            render_rule_comparison_tab(records=all_requests)

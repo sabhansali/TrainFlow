@@ -34,8 +34,9 @@ REVIEWABLE_STATES = {"PENDING_REVIEW", "REQUIRES_REVIEW"}
 REOPENABLE_STATES = {"ON_HOLD", "AWAITING_INFORMATION"}
 
 
+
 def run_workflow(records, rules):
-    """Pure processing step. It does not approve requests or send notifications."""
+    """Validate and score requests using role-specific routing rules."""
 
     validate_rules(rules)
 
@@ -48,7 +49,12 @@ def run_workflow(records, rules):
 
     for record in valid_records:
         evaluation = calculate_score(record, rules)
-        proposed_status = route_score(evaluation["score"], rules)
+
+        proposed_status = route_score(
+            evaluation["score"],
+            rules,
+            employee_role=record["employee_role"],
+        )
 
         processed_requests.append({
             **record,
@@ -87,6 +93,7 @@ def run_workflow(records, rules):
             "rule_version": rules["rule_version"],
         },
     }
+
 
 
 def process_import_file(

@@ -13,7 +13,7 @@ from typing import Any
 # ---------------------------------------------------------------------
 
 def _display_value(value: Any, suffix: str = "") -> str:
-    """Format a metric safely without inventing values."""
+    """Format metrics with suitable precision for small timing values."""
 
     if value is None:
         return "N/A"
@@ -21,10 +21,13 @@ def _display_value(value: Any, suffix: str = "") -> str:
     if isinstance(value, bool):
         return "Yes" if value else "No"
 
-    if isinstance(value, (int, float)):
-        return f"{value:,.2f}{suffix}" if isinstance(value, float) else (
-            f"{value:,}{suffix}"
-        )
+    if isinstance(value, float):
+        if suffix.strip() == "s/record":
+            return f"{value:,.6f}{suffix}"
+        return f"{value:,.2f}{suffix}"
+
+    if isinstance(value, int):
+        return f"{value:,}{suffix}"
 
     return f"{value}{suffix}"
 

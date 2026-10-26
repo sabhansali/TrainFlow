@@ -85,7 +85,7 @@ def run_workflow(records, rules):
         "rejected_records": rejected_records,
         "summary": {
             "total_records": len(records),
-            "valid_records": len(valid_records),
+            "valid_records": len(records) - len(rejected_records),
             "rejected_records": len(rejected_records),
             "processed_requests": len(processed_requests),
             "pending_human_review": len(processed_requests),
@@ -121,7 +121,26 @@ def process_import_file(
     source_hash = hashlib.sha256(path.read_bytes()).hexdigest()
 
     rules = load_rules(rules_path)
+    import time
+    import streamlit as st
+
+    start_time = time.perf_counter()
+
     result = run_workflow(records, rules)
+
+    elapsed_seconds = time.perf_counter() - start_time
+
+    processed_count = len(result.get("processed_requests", []))
+
+    if processed_count > 0:
+        average_seconds = elapsed_seconds / processed_count
+
+        st.session_state["workflow_timing_metrics"] = {
+            "average_processing_seconds_per_valid_record": average_seconds,
+            "average_processing_milliseconds_per_valid_record": (
+                average_seconds * 1000
+            ),
+        }
 
     persistence = persist_import_batch(
         db_path,

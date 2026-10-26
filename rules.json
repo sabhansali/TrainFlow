@@ -1,0 +1,25 @@
+
+{
+  "rule_version": "1.0",
+  "criteria": {
+    "role_relevance_score": 40,
+    "skill_gap_alignment_score": 35,
+    "prerequisite_completion_score": 25
+  },
+  "thresholds": {
+    "manager_approval_review": 75,
+    "lnd_review": 50
+  },
+  "allowed_roles": [
+    "Software Engineer",
+    "Data Analyst"
+  ],
+  "review_actions": [
+    "APPROVE",
+    "EDIT",
+    "HOLD",
+    "REQUEST_INFO"
+  ],
+  "sla_hours": 48,
+  "notification_max_retries": 2
+}
